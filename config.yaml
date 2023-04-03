@@ -1,0 +1,14 @@
+host-port: :8080
+
+basic-auth:
+  jinxin: jinxin_auth
+  jinxin2: jinxin_auth2
+
+redis:
+  addr: 127.0.0.1:6379
+  db: 1
+
+log:
+  level: 3
+  file: /Users/rick/my-workspace/jx-webhook/log/hook.log
+  access-log-format: '[${time}] ${status} - ${latency} ${method} ${path}/${queryParams} -[${protocol}:${host}]'
