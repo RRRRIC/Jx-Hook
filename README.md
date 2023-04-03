@@ -62,11 +62,15 @@ redis
 
 
 
+### Run:
+
 ```bash
 git clone git@github.com:RRRRIC/Jx-Hook.git
 cd ./jx-hook
 go build
 
+# service default port 8080
+# redis default 127.0.0.1:6379 db 1
 ./jx-hook -c ${YOU_OWN_CONFIG_FILE}
 ```
 
