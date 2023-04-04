@@ -8,6 +8,7 @@ import (
 )
 
 func TestResolveTemplate(t *testing.T) {
+	dictMaxSize = 10
 	template := "My name is ${person.name} and I work at ${company.location}"
 	jsonStr := "{\"person\":{\"name\":\"rick\"},\"company\":{\"location\":\"shanghai\"}}"
 	res, _ := ResolveTemplate(template, []byte(jsonStr))
