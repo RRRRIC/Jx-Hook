@@ -29,21 +29,21 @@ func Alert(ctx context.Context, c *app.RequestContext) {
 		handler.ReturnErr(c, models.InValidBodyCode, models.ErrInvalidBody, err)
 		return
 	}
-	for _, senderID := range config.SenderIds {
-		senderConfig, err := getSenderConfig(senderID)
+	for senderId, senderName := range config.SenderMap {
+		senderConfig, err := getSenderConfig(senderId)
 		if err != nil {
-			hlog.Warn("Failed to send due to no sender found, sender id ", senderID)
+			hlog.Warn("Failed to send due to no sender found, sender id ", senderId, senderName)
 			continue
 		}
 		if *senderConfig.Enable {
 			msg, err := utils.ResolveTemplate(senderConfig.TemplateMsg, body)
 			if err != nil {
-				hlog.Warn("Failed to send due to template resolve failed, sender id ", senderID, err)
+				hlog.Warn("Failed to send due to template resolve failed, sender id ", senderId, senderName, err)
 				continue
 			}
 			err = utils.SendMsg(senderConfig, msg)
 			if err != nil {
-				hlog.Warn("Failed to send due to wechat failed, sender id ", senderID, err)
+				hlog.Warn("Failed to send due to wechat failed, sender id ", senderId, senderName, err)
 			}
 		}
 	}
@@ -57,9 +57,17 @@ func Save(ctx context.Context, c *app.RequestContext) {
 		return
 	}
 	config := saveVo.ToConfig()
+	for _, senderId := range saveVo.SenderIds {
+		c, err := getSenderConfig(senderId)
+		if err != nil {
+			hlog.Warn("Add a sender id not exist with id", senderId)
+			continue
+		}
+		config.SenderMap[senderId] = c.Name
+	}
 	utils.Cache(utils.AlertPrefix+config.ID, config, -1)
 	hlog.Info("Succeed save config ", config.ID)
-	handler.ReturnSuccess(c, consts.StatusCreated, "", nil)
+	handler.ReturnSuccess(c, consts.StatusCreated, "", config)
 }
 
 func Query(ctx context.Context, c *app.RequestContext) {

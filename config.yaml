@@ -1,4 +1,4 @@
-host-port: :8080
+host-port: :9881
 
 basic-auth:
   jinxin: jinxin_auth
