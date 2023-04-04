@@ -15,12 +15,31 @@ PUT "/sender/save"
   "name": "jinxin",
   "wechat_robot_key": "123451212312123",
   "template_msg": "Alert from ${alert.host} is ${current_value}"
-  "wechat_alert_type": "text",
+  "alert_type": "text",
   "enable": true
 }
 ````
 
- 
+
+
+create a custom sender
+
+```
+PUT "/sender/save"
+{
+  "id": "sender001", // Empty id means create &  id means modify or specifced id sender
+  "name": "jinxin",
+  "wechat_robot_key": "123451212312123",
+  "template_msg": "{\"host\" : \"${alert.host}\", \"current_value\": \"${current_value}\"}"
+  "custom_url" : "https://my-own-platform/alert"
+  "alert_type": "custom",
+  "enable": true
+}
+```
+
+
+
+
 
 And create a alert to send this msg 
 
@@ -51,6 +70,12 @@ So when you received an alert from platform like `grafna` and its data like blow
 ```
 
 It will automaticlly send a msg to wechat and fill the value of template to "Alert from host001 is 1000"
+
+
+
+>   Here's the grafana's alert template
+>
+>   https://grafana.com/docs/grafana-cloud/alerting/manage-notifications/webhook-notifier/
 
 ## Install
 
