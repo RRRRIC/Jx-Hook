@@ -14,7 +14,7 @@ import (
 	"github.com/go-redis/redis"
 )
 
-var dictMaxSize int
+var dictMaxSize = 2000
 var client *redis.Client
 
 func UpdateDictMaxSize(size int) {
@@ -164,7 +164,7 @@ func ResolveTemplate(t string, jsonByte []byte) (string, error) {
 			// parse value's type
 			switch v := val.(type) {
 			case map[string]interface{}:
-				hlog.Info("Doing key ", key, " as interface resolve & type :", v)
+				hlog.Debug("Doing key ", key, " as interface resolve & type :", v)
 				innerResolve(key, val.(map[string]interface{}))
 			default:
 				placeholder := "${" + key + "}"
