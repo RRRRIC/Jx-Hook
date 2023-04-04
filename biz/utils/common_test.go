@@ -1,4 +1,4 @@
-package resolve
+package utils
 
 import (
 	"fmt"

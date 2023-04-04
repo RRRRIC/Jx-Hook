@@ -3,32 +3,27 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"jx-hook/biz/config"
+	"jx-hook/biz/utils"
 	"os"
 
 	"github.com/cloudwego/hertz/pkg/app/middlewares/server/basic_auth"
 	"github.com/cloudwego/hertz/pkg/app/server"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/fsnotify/fsnotify"
 	"github.com/hertz-contrib/logger/accesslog"
+	"github.com/spf13/viper"
 )
 
 var serverConfig config.ServerConfig
 
-func init() {
-	serverConfig = config.ConfigInstance
-}
-
-func logFile() *os.File {
-	f, err := os.OpenFile(serverConfig.LogConfig.File, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("Failed to access log file", err)
-	}
-	return f
-}
-
 func main() {
+
+	initConfig()
+
 	h := server.Default(server.WithHostPorts(serverConfig.HostPort))
 
 	hlog.DefaultLogger().SetOutput(io.MultiWriter(logFile(), os.Stdout))
@@ -44,4 +39,52 @@ func main() {
 	register(h)
 
 	h.Spin()
+}
+
+func initConfig() {
+	var configFile string
+	flag.StringVar(&configFile, "c", "./config.yaml", "short for conf, specific the config file or default './config'")
+	flag.Parse()
+
+	hlog.Info("Config file : ", configFile)
+	viper.SetConfigFile(configFile)
+	viper.AutomaticEnv()
+
+	updateConfig := func() {
+		hlog.Info("Doing config update with file ", configFile)
+		if err := viper.ReadInConfig(); err != nil {
+			panic(fmt.Errorf("failed to read config: %s", err))
+		}
+		err := viper.Unmarshal(&serverConfig)
+		if err != nil {
+			panic("config file can't be recognized")
+		}
+
+		if serverConfig.LogConfig.AccessLogFormat == "" {
+			serverConfig.LogConfig.AccessLogFormat = "[${time}] ${status} - ${latency} ${method} ${path}"
+		}
+
+		if serverConfig.DictMaxSize <= 0 {
+			serverConfig.DictMaxSize = 2000
+		}
+		utils.UpdateClient(serverConfig.RedisConfig)
+		utils.UpdateDictMaxSize(serverConfig.DictMaxSize)
+	}
+
+	updateConfig()
+
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		hlog.Info("Config file changed:", e.Name)
+		updateConfig()
+	})
+
+}
+
+func logFile() *os.File {
+	f, err := os.OpenFile(serverConfig.LogConfig.File, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		hlog.Error("Failed to access log file with file ", serverConfig.LogConfig.File, err)
+	}
+	return f
 }

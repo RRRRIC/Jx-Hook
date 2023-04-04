@@ -3,9 +3,9 @@ package sender
 import (
 	"context"
 	"jx-hook/biz/handler"
-	senderConfig "jx-hook/biz/models/senderConfig"
-	"jx-hook/biz/models/vos"
-	"jx-hook/biz/utils/cache"
+	"jx-hook/biz/models"
+	"jx-hook/biz/models/senderConfig"
+	"jx-hook/biz/utils"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -16,11 +16,11 @@ func Save(ctx context.Context, c *app.RequestContext) {
 	var saveVo senderConfig.SenderSaveVO
 	err := c.BindAndValidate(&saveVo)
 	if err != nil {
-		handler.ReturnErr(c, vos.InvalidParamCode, vos.ErrInvalidParam, err)
+		handler.ReturnErr(c, models.InvalidParamCode, models.ErrInvalidParam, err)
 		return
 	}
 	config := saveVo.ToConfig()
-	cache.Set(cache.SENDER_PREFIX+config.ID, config, -1)
+	utils.Cache(utils.SenderPrefix+config.ID, config, -1)
 	hlog.Info("Succeed save config ", config.ID, config.Name)
 	handler.ReturnSuccess(c, consts.StatusCreated, "", config)
 }
@@ -34,13 +34,13 @@ func Query(ctx context.Context, c *app.RequestContext) {
 }
 
 func Del(ctx context.Context, c *app.RequestContext) {
-	var idOpt vos.IDOpt
+	var idOpt models.IDOpt
 	err := c.BindAndValidate(&idOpt)
 	if err != nil {
-		handler.ReturnErr(c, vos.InvalidParamCode, vos.ErrInvalidParam, err)
+		handler.ReturnErr(c, models.InvalidParamCode, models.ErrInvalidParam, err)
 		return
 	}
-	cache.Remove(cache.SENDER_PREFIX + idOpt.ID)
+	utils.RemoveCache(utils.SenderPrefix + idOpt.ID)
 	hlog.Info("Succeed remove alert ", idOpt.ID)
 	handler.ReturnSuccess(c, consts.StatusOK, "", nil)
 }
@@ -60,23 +60,23 @@ func setEnable(enable bool, c *app.RequestContext) {
 		return
 	}
 	config.Enable = &enable
-	cache.Set(cache.SENDER_PREFIX+config.ID, config, -1)
+	utils.Cache(utils.SenderPrefix+config.ID, config, -1)
 	hlog.Info("Succeed set config ", config.ID, config.Name, " status : ", enable)
 	handler.ReturnSuccess(c, consts.StatusOK, "", config)
 }
 
 func getConfig(c *app.RequestContext) (senderConfig.SenderConfig, error) {
-	var idOpt vos.IDOpt
+	var idOpt models.IDOpt
 	var config senderConfig.SenderConfig
 	err := c.BindAndValidate(&idOpt)
 	if err != nil {
-		handler.ReturnErr(c, vos.InvalidParamCode, vos.ErrInvalidParam, err)
+		handler.ReturnErr(c, models.InvalidParamCode, models.ErrInvalidParam, err)
 		return config, nil
 	}
 
-	err = cache.Get(cache.SENDER_PREFIX+idOpt.ID, &config)
+	err = utils.GetCache(utils.SenderPrefix+idOpt.ID, &config)
 	if err != nil {
-		handler.ReturnErr(c, vos.DataNotExistCode, vos.ErrDataNotExist, err)
+		handler.ReturnErr(c, models.DataNotExistCode, models.ErrDataNotExist, err)
 		return config, nil
 	}
 	return config, nil

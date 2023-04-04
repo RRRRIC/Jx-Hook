@@ -1,4 +1,4 @@
-package vos
+package models
 
 import "errors"
 
@@ -10,7 +10,7 @@ type CommonResp struct {
 	DataArray []any  `json:"data_array,omitempty"`
 }
 
-// operation base on id
+// operation base on id only
 type IDOpt struct {
 	ID string `path:"id" param:"id" query:"id" json:"id" vd:"len($) > 0"`
 }

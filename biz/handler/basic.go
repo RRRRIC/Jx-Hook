@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"jx-hook/biz/models/vos"
+	"jx-hook/biz/models"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
@@ -14,8 +14,8 @@ func Auth(ctx context.Context, c *app.RequestContext) {
 }
 
 func ReturnSuccess(c *app.RequestContext, code int, msg string, data any) {
-	c.JSON(code, &vos.CommonResp{
-		Code:    vos.SucceedCode,
+	c.JSON(code, &models.CommonResp{
+		Code:    models.SucceedCode,
 		Succeed: true,
 		Msg:     msg,
 		Data:    data,
@@ -24,7 +24,7 @@ func ReturnSuccess(c *app.RequestContext, code int, msg string, data any) {
 
 func ReturnErr(c *app.RequestContext, code int, myErr, err error) {
 	hlog.Warn("Return err resp from uri ", c.URI(), myErr, err)
-	c.JSON(consts.StatusBadRequest, &vos.CommonResp{
+	c.JSON(consts.StatusBadRequest, &models.CommonResp{
 		Code:    code,
 		Succeed: false,
 		Msg:     myErr.Error(),
